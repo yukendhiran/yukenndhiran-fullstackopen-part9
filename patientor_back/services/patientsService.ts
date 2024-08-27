@@ -1,16 +1,34 @@
-import patientsData from "../data/patients";
+import patients from "../data/patients-full";
 import {
   PatientsEntry,
   NonSensitivePatientsEntry,
-  NewPatientsEntry,
+  EntryWithoutId,
+  Entry,
+  NewPatientEntry,
 } from "../types/types";
 import { v1 as uuid } from "uuid";
 const getEntries = (): Array<PatientsEntry> => {
-  return patientsData;
+  return patients;
+};
+
+const findById = (id: string): PatientsEntry | undefined => {
+  const entry = patients.find((p) => p.id === id);
+  return entry;
+};
+
+const addPatientEntry = (entry: NewPatientEntry): PatientsEntry => {
+  const newId: string = uuid();
+  const newPatientEntry = {
+    id: newId,
+    ...entry,
+  };
+
+  patients.push(newPatientEntry);
+  return newPatientEntry;
 };
 
 const getNonSensitiveEntries = (): NonSensitivePatientsEntry[] => {
-  return patientsData.map(({ id, name, dateOfBirth, gender, occupation }) => ({
+  return patients.map(({ id, name, dateOfBirth, gender, occupation }) => ({
     id,
     name,
     dateOfBirth,
@@ -19,25 +37,25 @@ const getNonSensitiveEntries = (): NonSensitivePatientsEntry[] => {
   }));
 };
 
-const addEntry = (entry: NewPatientsEntry): PatientsEntry => {
-  if (!entry) {
-    throw new Error("Entry is undefined or null");
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  const id: string = uuid() as string;
-
+const addEntry = (patientId: string, entry: EntryWithoutId): Entry => {
+  const newId: string = uuid();
   const newEntry = {
-    id: id,
+    id: newId,
     ...entry,
   };
-
-  patientsData.push(newEntry);
-  return newEntry;
+  const idx: number = patients.findIndex((patient) => patientId === patient.id);
+  if (idx === -1) {
+    throw Error("Patient not found");
+  } else {
+    patients[idx].entries.push(newEntry);
+    return newEntry;
+  }
 };
 
 export default {
   getEntries,
   addEntry,
   getNonSensitiveEntries,
+  findById,
+  addPatientEntry,
 };
